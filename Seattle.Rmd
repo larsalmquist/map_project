@@ -200,18 +200,14 @@ p_sea
 
 ggsave("seattlev3.pdf")
 ```
-```{r echo=TRUE, include=FALSE, warning=FALSE, message=FALSE}
+```{r add_personal_routes, echo=TRUE, include=FALSE, warning=FALSE, message=FALSE}
 library(readr)
 require(osrm)
 require(data.table)
-library(lubridate)
 locs.sites <- read_csv("~/Desktop/Coding Projects/Maps/Maps 2021 - Seattle.csv")
 View(locs.sites)
 
-dim(locs.sites)
-head(locs.sites)
-
-locs.sites$time <- as_date(locs.sites$time)
+locs.sites$time <- as.Date(locs.sites$time)
 class(locs.sites$time)
 
 daily_routes <- function(date) {
@@ -234,29 +230,30 @@ daily_routes <- function(date) {
 dates <- unique(as.Date(locs.sites$time))
 routes <- do.call(rbind(
                   lapply(dates), daily_routes))
+
+# Error in do.call(rbind(lapply(dates), daily_routes)) : 
+#  argument "args" is missing, with no default
 ```
 
 ```{r final_map }
-final_map <- ggpl
-
 final_map <- ggplot() + 
-  geom_sf(data=counties_MA,
+  geom_sf(data=counties_WA,
           inherit.aes= FALSE,
           lwd=0.0,fill=rgb(0.203,0.234,0.277))+
   geom_sf(data = streets$osm_lines,
           inherit.aes = FALSE,
           color=color_roads,
-          size = .4,
-          alpha = .65) +
+          size = .2,
+          alpha = .5) +
   geom_sf(data = highways$osm_lines,
           inherit.aes = FALSE,
           color=color_roads,
-          size = .6,
-          alpha = .65) +
+          size = .2,
+          alpha = .5) +
   geom_sf(data=st_geometry(routes),
           inherit.aes = FALSE,col="red",alpha=0.5)+ 
-  coord_sf(xlim = c(min(bbx[1,]), max(bbx[1,])), 
-           ylim = c(min(bbx[2,]), max(bbx[2,])),
+  coord_sf(xlim = c(min(sea[1,]), max(sea[1,])), 
+           ylim = c(min(sea[2,]), max(sea[2,])),
            expand = FALSE) +
   theme(legend.position = F) + theme_void()+
   theme(panel.background=
