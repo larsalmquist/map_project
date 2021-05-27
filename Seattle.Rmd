@@ -133,6 +133,8 @@ ggplot() +
   theme(legend.position = FALSE) +
   theme_void()
 ```
+
+
 ```{r black_yellow_theme, echo = TRUE, include=FALSE, warning=FALSE, message=FALSE}
 ggplot() +
   geom_sf(data = counties_WA,
@@ -206,6 +208,8 @@ require(osrm)
 require(data.table)
 
 locs.sites <- read.csv("https://raw.githubusercontent.com/larsalmquist/map_project/main/maps_2021_seattle.csv")
+#let's put each destination in a different day
+locs.sites$time <- as.Date(locs.sites$time)+1:length(locs.sites$time)
 View(locs.sites)
 
 
@@ -213,11 +217,12 @@ locs.sites$time <- as.Date(locs.sites$time)
 class(locs.sites$time)
 
 daily_routes <- function(date) {
-  ll <- locs.sites[as.Date(time)==date, c("lon", "lat")]
+  ll <- locs.sites %>% filter(as.Date(time)==date) %>%
+    select(lon,lat)
   #add home early in the morning 	
-  ll <- rbind(data.table(lon = -122.3610036, lat = - 47.6646144), ll)
+  ll <- rbind(data.frame(lon = -122.3610036, lat = 47.6646144), ll)
   #add home late in the day
-  ll <- rbind(ll, data.table(lon = -122.3610036, lat = 47.6646144))
+  ll <- rbind(ll, data.frame(lon = -122.3610036, lat = 47.6646144))
   route <- NULL
   for (j in 2:nrow(ll)) {
     p1 <- c(ll$lon[j-1], ll$lat[j-1])
@@ -230,10 +235,7 @@ daily_routes <- function(date) {
 }
 
 dates <- unique(as.Date(locs.sites$time))
-routes <- do.call(rbind(
-                  lapply(dates), daily_routes))
-
-
+routes <- do.call(rbind,lapply(dates,daily_routes))
 ```
 
 ```{r final_map }
